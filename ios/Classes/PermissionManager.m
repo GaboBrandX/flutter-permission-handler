@@ -77,10 +77,10 @@
     switch (permission) {
             case PermissionGroupCamera:
             return [AudioVideoPermissionStrategy new];
+            case PermissionGroupMediaLibrary:
+            return [MediaLibraryPermissionStrategy new];
             case PermissionGroupMicrophone:
             return [AudioVideoPermissionStrategy new];
-            case PermissionGroupPhone:
-            return [PhonePermissionStrategy new];
             case PermissionGroupPhotos:
             return [PhotoPermissionStrategy new];
         default:
