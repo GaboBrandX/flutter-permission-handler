@@ -99,16 +99,12 @@ class PermissionGroup {
   /// iOS: Photos
   static const PermissionGroup photos = PermissionGroup._(3);
 
-  /// Android: Microphone
-  /// iOS: Speech
-  static const PermissionGroup speech = PermissionGroup._(4);
-
   /// Android: External Storage
   /// iOS: Nothing
-  static const PermissionGroup storage = PermissionGroup._(5);
+  static const PermissionGroup storage = PermissionGroup._(4);
 
   /// The unknown permission only used for return type, never requested
-  static const PermissionGroup unknown = PermissionGroup._(6);
+  static const PermissionGroup unknown = PermissionGroup._(5);
 
   static const List<PermissionGroup> values = <PermissionGroup>[
     camera,
