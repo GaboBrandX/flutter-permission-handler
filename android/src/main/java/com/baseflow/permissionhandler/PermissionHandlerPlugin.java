@@ -225,32 +225,12 @@ public class PermissionHandlerPlugin implements MethodCallHandler {
     for (String name : names) {
       // Only handle them if the client app actually targets a API level greater than M.
       if (targetsMOrHigher) {
-        if (permission == PERMISSION_GROUP_IGNORE_BATTERY_OPTIMIZATIONS) {
-          String packageName = context.getPackageName();
-          PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-          // PowerManager.isIgnoringBatteryOptimizations has been included in Android M first.
-          if (VERSION.SDK_INT >= VERSION_CODES.M) {
-            if (pm.isIgnoringBatteryOptimizations(packageName)) {
-              return PERMISSION_STATUS_GRANTED;
-            } else {
-              return PERMISSION_STATUS_DENIED;
-            }
-          } else {
-            return PERMISSION_STATUS_RESTRICTED;
-          }
-        }
         final int permissionStatus = ContextCompat.checkSelfPermission(context, name);
         if (permissionStatus == PackageManager.PERMISSION_DENIED) {
           return PERMISSION_STATUS_DENIED;
         } else if (permissionStatus != PackageManager.PERMISSION_GRANTED) {
           return PERMISSION_STATUS_UNKNOWN;
         }
-      }
-    }
-
-    if (permission == PERMISSION_GROUP_LOCATION || permission == PERMISSION_GROUP_LOCATION_ALWAYS || permission == PERMISSION_GROUP_LOCATION_WHEN_IN_USE) {
-      if (!isLocationServiceEnabled(context)) {
-        return PERMISSION_STATUS_DISABLED;
       }
     }
 
@@ -264,42 +244,6 @@ public class PermissionHandlerPlugin implements MethodCallHandler {
     if (context == null) {
       Log.d(LOG_TAG, "Unable to detect current Activity or App Context.");
       return SERVICE_STATUS_UNKNOWN;
-    }
-
-    if (permission == PERMISSION_GROUP_LOCATION || permission == PERMISSION_GROUP_LOCATION_ALWAYS || permission == PERMISSION_GROUP_LOCATION_WHEN_IN_USE) {
-      return isLocationServiceEnabled(context) ? SERVICE_STATUS_ENABLED : SERVICE_STATUS_DISABLED;
-    }
-
-    if (permission == PERMISSION_GROUP_PHONE) {
-      PackageManager pm = context.getPackageManager();
-      if (!pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
-        return SERVICE_STATUS_NOT_APPLICABLE;
-      }
-
-      TelephonyManager telephonyManager = (TelephonyManager) context
-          .getSystemService(Context.TELEPHONY_SERVICE);
-
-      if (telephonyManager.getPhoneType() == TelephonyManager.PHONE_TYPE_NONE) {
-        return SERVICE_STATUS_NOT_APPLICABLE;
-      }
-
-      Intent callIntent = new Intent(Intent.ACTION_CALL);
-      callIntent.setData(Uri.parse("tel:123123"));
-      List<ResolveInfo> callAppsList = pm.queryIntentActivities(callIntent, 0);
-
-      if (callAppsList.isEmpty()) {
-        return SERVICE_STATUS_NOT_APPLICABLE;
-      }
-
-      if (telephonyManager.getSimState() != TelephonyManager.SIM_STATE_READY) {
-        return SERVICE_STATUS_DISABLED;
-      }
-
-      return SERVICE_STATUS_ENABLED;
-    }
-
-    if (permission == PERMISSION_GROUP_IGNORE_BATTERY_OPTIMIZATIONS) {
-      return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? SERVICE_STATUS_ENABLED : SERVICE_STATUS_NOT_APPLICABLE;
     }
 
     return SERVICE_STATUS_NOT_APPLICABLE;
@@ -361,15 +305,7 @@ public class PermissionHandlerPlugin implements MethodCallHandler {
           continue;
         }
 
-        if (permission == PERMISSION_GROUP_IGNORE_BATTERY_OPTIMIZATIONS) {
-          String packageName = mRegistrar.context().getPackageName();
-          Intent intent = new Intent();
-          intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-          intent.setData(Uri.parse("package:" + packageName));
-          mRegistrar.activity().startActivityForResult(intent, PERMISSION_CODE_IGNORE_BATTERY_OPTIMIZATIONS);
-        } else {
-          permissionsToRequest.addAll(names);
-        }
+        permissionsToRequest.addAll(names);
       } else {
         if (!mRequestResults.containsKey(permission)) {
           mRequestResults.put(permission, PERMISSION_STATUS_GRANTED);
@@ -399,26 +335,6 @@ public class PermissionHandlerPlugin implements MethodCallHandler {
         if (!mRequestResults.containsKey(PERMISSION_GROUP_MICROPHONE)) {
           mRequestResults.put(PERMISSION_GROUP_MICROPHONE, toPermissionStatus(grantResults[i]));
         }
-        if (!mRequestResults.containsKey(PERMISSION_GROUP_SPEECH)) {
-          mRequestResults.put(PERMISSION_GROUP_SPEECH, toPermissionStatus(grantResults[i]));
-        }
-      } else if (permission == PERMISSION_GROUP_LOCATION) {
-        final Context context = mRegistrar.activity() == null ? mRegistrar.activeContext() : mRegistrar.activity();
-        final boolean isLocationServiceEnabled = context != null && isLocationServiceEnabled(context);
-        @PermissionStatus int permissionStatus = toPermissionStatus(grantResults[i]);
-        if (permissionStatus == PERMISSION_STATUS_GRANTED && !isLocationServiceEnabled) {
-          permissionStatus = PERMISSION_STATUS_DISABLED;
-        }
-
-        if (!mRequestResults.containsKey(PERMISSION_GROUP_LOCATION_ALWAYS)) {
-          mRequestResults.put(PERMISSION_GROUP_LOCATION_ALWAYS, permissionStatus);
-        }
-
-        if (!mRequestResults.containsKey(PERMISSION_GROUP_LOCATION_WHEN_IN_USE)) {
-          mRequestResults.put(PERMISSION_GROUP_LOCATION_WHEN_IN_USE, permissionStatus);
-        }
-
-        mRequestResults.put(permission, permissionStatus);
       } else if (!mRequestResults.containsKey(permission)) {
         mRequestResults.put(permission, toPermissionStatus(grantResults[i]));
       }
@@ -433,8 +349,6 @@ public class PermissionHandlerPlugin implements MethodCallHandler {
     }
 
     int status = granted ? PERMISSION_STATUS_GRANTED : PERMISSION_STATUS_DENIED;
-
-    mRequestResults.put(PERMISSION_GROUP_IGNORE_BATTERY_OPTIMIZATIONS, status);
 
     processResult();
   }
