@@ -83,8 +83,6 @@
             return [PhonePermissionStrategy new];
             case PermissionGroupPhotos:
             return [PhotoPermissionStrategy new];
-            case PermissionGroupSpeech:
-            return [SpeechPermissionStrategy new];
         default:
             return [UnknownPermissionStrategy new];
     }
