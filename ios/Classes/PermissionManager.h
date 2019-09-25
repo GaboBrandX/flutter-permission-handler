@@ -10,10 +10,9 @@
 #import <UIKit/UIKit.h>
 
 #import "AudioVideoPermissionStrategy.h"
+#import "MediaLibraryPermissionStrategy.h"
 #import "PermissionStrategy.h"
-#import "PhonePermissionStrategy.h"
 #import "PhotoPermissionStrategy.h"
-#import "SpeechPermissionStrategy.h"
 #import "UnknownPermissionStrategy.h"
 #import "PermissionHandlerEnums.h"
 #import "Codec.h"
